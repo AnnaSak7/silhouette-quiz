@@ -4,27 +4,29 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link rel="stylesheet" href="./styles/style.css" />
     <title>Quiz</title>
   </head>
   <body>
-    <div class="container">
-      <div class="input-wrapper">
+    <div class="container" id="containerBox">
+      <!-- <div class="input-wrapper">
         <input type="text" placeholder="Name" id="name" />
         <button id="addName">ADD</button>
-      </div>
+      </div> -->
 
       <ul id="listOfNames"></ul>
 
-      <h1 id="quiz-title">Silhouette Quiz</h1>
+      <h1 id="quiz-title"></h1>
       <div id="question"></div>
-      <div id="clickImage">Click on a matching image</div>
+      <div id="clickTheMatchingImage"></div>
+      <div id="clickImage"></div>
       <div id="sound"></div>
       <div class="card-container" id="cardsContainer"></div>
 
       <div id="popup">
         <div id="content"></div>
-        <button id="nextBtn">NEXT</button>
+        <!-- <button id="nextBtn">NEXT</button> -->
       </div>
     </div>
 

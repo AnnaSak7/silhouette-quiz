@@ -1,12 +1,143 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.2.0/firebase-app.js';
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  doc,
+  deleteDoc,
+  getDocs,
+} from 'https://www.gstatic.com/firebasejs/9.2.0/firebase-firestore.js';
+
+//Add your own config content
+const firebaseConfig = {
+  apiKey: 'AIzaSyARqljuS5yf86OHAp8H1u9q0j6I6m1Scss',
+  authDomain: 'quiz-01-2c676.firebaseapp.com',
+  projectId: 'quiz-01-2c676',
+  storageBucket: 'quiz-01-2c676.appspot.com',
+  messagingSenderId: '180059847819',
+  appId: '1:180059847819:web:768ec49d4e155787f9688e',
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// //Add to firebase
+// async function addName() {
+//   var name = readInput('name');
+//   if (!name) return null;
+//   try {
+//     const docRef = await addDoc(collection(db, 'score'), {
+//       name: name,
+//     });
+//     clearInput('name');
+//     displayNamesInList('listOfNames');
+//   } catch (e) {
+//     console.error('Error adding document: ', e);
+//   }
+// }
+
+//add scores
+async function addScore() {
+  if (currentQuestion >= 2) {
+    try {
+      const docRef = await addDoc(collection(db, 'score'), {
+        score: `${score}`,
+      });
+      console.log('adding score to firebase');
+    } catch (e) {
+      console.error('Error adding document: ', e);
+    }
+  }
+}
+
+//Remove to firebase
+async function deleteName() {
+  var id = this.getAttribute('data-id');
+  await deleteDoc(doc(db, 'names', id));
+  displayNamesInList('listOfNames');
+}
+
+//Get all from firebase
+async function getNames() {
+  const names = await getDocs(collection(db, 'score'));
+  return names;
+}
+
+function readInput(id) {
+  if (!document.getElementById(id) && !document.getElementById(id).value)
+    return null;
+
+  return document.getElementById(id).value;
+}
+
+function clearContentOfElement(id) {
+  if (!document.getElementById(id)) return null;
+  document.getElementById(id).innerHTML = '';
+}
+
+function formatListItem(item) {
+  return `<li>
+            <h3>${item.name}</h3>
+            <button
+              class="deleteName"
+              data-id="${item.id}">
+              DELETE
+            </button>
+          </li>`;
+}
+
+function clearInput(id) {
+  if (!document.getElementById(id)) return null;
+  document.getElementById(id).value = '';
+}
+
+function addNameToList(list, item) {
+  if (!document.getElementById(list)) return null;
+  document.getElementById(list).innerHTML += formatListItem(item);
+}
+
+function addEventListner() {
+  if (!document.getElementById('addName')) return null;
+  document.getElementById('addName').removeEventListener('click', addName);
+  document.getElementById('addName').addEventListener('click', addName);
+
+  if (!document.getElementsByClassName('deleteName')) return null;
+  var elements = document.getElementsByClassName('deleteName');
+  for (var i = 0; i < elements.length; i++) {
+    elements[i].addEventListener('click', deleteName, false);
+  }
+}
+
+async function displayNamesInList(id) {
+  var namesInDb = await getNames();
+  clearContentOfElement(id);
+
+  namesInDb.forEach((doc) => {
+    addNameToList('listOfNames', { id: doc.id, name: doc.data().name });
+  });
+
+  addEventListner();
+  return;
+}
+
+async function init() {
+  await displayNamesInList('listOfNames');
+  addEventListner();
+}
+
+init();
+
+// Sak quiz
 const imageCards = document.getElementById('cardsContainer');
 const question = document.getElementById('question');
 const clickImage = document.getElementById('clickImage');
 const quizTitle = document.getElementById('quiz-title');
 const popup = document.getElementById('popup');
-//const body = document.getElementsByTagName('body');
+const sound = document.getElementById('sound');
+const clickTheMatchingImage = document.getElementById('clickTheMatchingImage');
 
 let currentQuestion = 0;
 let score = 0;
+let randomIndex;
 
 const silhouetteImg = [
   {
@@ -30,7 +161,6 @@ const silhouetteImg = [
     question: 'Who fights against titans?',
   },
 ];
-
 const ghibliSound = [
   {
     src: 'data/hauru.mp3',
@@ -69,18 +199,201 @@ const ghibliSound = [
   },
 ];
 
-document.body.style.backgroundColor = '#000';
+// Noah quiz
+var imageBox1;
+var imageBox2;
+var imageBox3;
+var imageRect;
+var textBox;
+var mainImageRect;
+var mainBox;
+var mousePosition;
+var boxNr;
+var isDown = false;
+var offset = [0, 0];
+var randomPicker;
+let checkHover;
+
+var pictureArray = [
+  //PIZZA
+  {
+    question: 'What should go on this pizza?',
+    folderURL: 'pizzaimgs',
+    winNr: 1,
+  },
+  //APHEX TWIN
+  {
+    question: 'What is his logo?',
+    folderURL: 'apheximgs',
+    winNr: 2,
+  },
+  //TURKISK YOGHURT
+  {
+    question: 'What country is he from?',
+    folderURL: 'turkimgs',
+    winNr: 3,
+  },
+];
+
+function createImages() {
+  //console.log('inside the createImage function');
+  randomPicker = random(pictureArray);
+  //console.log('randomP is ', randomPicker);
+  var $mainDiv = $('<div/>').attr('id', 'mainBox');
+  $mainDiv
+    .css({
+      height: '40%',
+      width: '40%',
+      position: 'absolute',
+      left: '50%',
+      top: '25%',
+      transform: 'translate(-50%,-50%)',
+      background: `url(/images/${pictureArray[randomPicker].folderURL}/main.jpeg)`,
+      'background-size': '100%',
+      'background-repeat': 'no-repeat',
+      'background-position': 'center',
+      'z-index': '1',
+    })
+    .appendTo('#containerBox')
+    .html();
+
+  for (var u = 1; u <= 3; u++) {
+    var $newDiv = $('<div/>').attr('id', 'imageBox' + u);
+    $newDiv
+      .css({
+        height: '20%',
+        width: '20%',
+        position: 'absolute',
+        left: 25 * u + '%',
+        top: '75%',
+        transform: 'translate(-50%,-50%)',
+        background: `url(/images/${pictureArray[randomPicker].folderURL}/item${u}.jpeg)`,
+        'background-size': '100%',
+        'background-repeat': 'no-repeat',
+        'background-position': 'center',
+        'z-index': '1',
+      })
+      .appendTo('#containerBox')
+      .html();
+  }
+
+  imageBox1 = document.getElementById('imageBox1');
+  imageBox2 = document.getElementById('imageBox2');
+  imageBox3 = document.getElementById('imageBox3');
+  mainBox = document.getElementById('mainBox');
+  textBox = document.getElementById('question');
+  textBox.innerHTML = pictureArray[randomPicker].question;
+}
+
+function dragAndDrop() {
+  if (imageBox1) {
+    imageBox1.addEventListener(
+      'mousedown',
+      (e) => {
+        isDown = true;
+        checkHover = 'imageBox1';
+        boxNr = 1;
+        offset = [
+          imageBox1.offsetLeft - e.clientX,
+          imageBox1.offsetTop - e.clientY,
+        ];
+      },
+      true
+    );
+  }
+
+  if (imageBox2) {
+    imageBox2.addEventListener(
+      'mousedown',
+      (e) => {
+        isDown = true;
+        checkHover = 'imageBox2';
+        boxNr = 2;
+        offset = [
+          imageBox2.offsetLeft - e.clientX,
+          imageBox2.offsetTop - e.clientY,
+        ];
+      },
+      true
+    );
+  }
+
+  if (imageBox3) {
+    imageBox3.addEventListener(
+      'mousedown',
+      (e) => {
+        isDown = true;
+        checkHover = 'imageBox3';
+        boxNr = 3;
+        offset = [
+          imageBox3.offsetLeft - e.clientX,
+          imageBox3.offsetTop - e.clientY,
+        ];
+      },
+      true
+    );
+  }
+
+  document.addEventListener(
+    'mouseup',
+    function () {
+      isDown = false;
+      console.log('boxNr is ', boxNr);
+      imageRect = document
+        .getElementById('imageBox' + boxNr)
+        .getBoundingClientRect();
+      mainImageRect = mainBox.getBoundingClientRect();
+      console.log(mainBox.offsetHeight);
+      if (
+        imageRect.top <= mainImageRect.top + mainBox.offsetHeight &&
+        imageRect.top >= mainImageRect.top &&
+        imageRect.left <= mainImageRect.left + mainBox.offsetHeight &&
+        imageRect.left >= mainImageRect.left
+      ) {
+        if (boxNr == pictureArray[randomPicker].winNr) {
+          mainBox.style.backgroundImage = `url(/images/${pictureArray[randomPicker].folderURL}/win.jpeg)`;
+        } else {
+          mainBox.style.backgroundImage = `url(/images/${pictureArray[randomPicker].folderURL}/lose.jpeg)`;
+        }
+        for (var i = 1; i <= 3; i++) {
+          $('#imageBox' + i).remove();
+        }
+        setTimeout(next, 1000);
+      }
+    },
+    true
+  );
+
+  document.addEventListener('mousemove', function () {
+    event.preventDefault();
+    if (isDown) {
+      mousePosition = {
+        x: event.clientX,
+        y: event.clientY,
+      };
+      for (var i = 1; i <= 3; i++) {
+        if (checkHover == 'imageBox' + i) {
+          document.getElementById('imageBox' + i).style.left =
+            mousePosition.x + offset[0] + 'px';
+          document.getElementById('imageBox' + i).style.top =
+            mousePosition.y + offset[1] + 'px';
+        }
+      }
+    }
+  });
+}
+
+function startGame() {
+  question.innerHTML = `<button id="startBtn">Begin the Game</button>`;
+  question.addEventListener('click', next);
+}
+startGame();
 
 // Give random index number of array
 function random(array) {
   let index = Math.floor(Math.random() * array.length);
   return index;
 }
-
-let randomIndex = random(silhouetteImg);
-console.log(randomIndex);
-
-question.innerHTML = silhouetteImg[randomIndex].question;
 
 // shows imgs
 function createCards(imgArray) {
@@ -89,8 +402,6 @@ function createCards(imgArray) {
   }
   addEventListener();
 }
-
-createCards(silhouetteImg);
 
 // add EventListener to imgBtn class
 function addEventListener() {
@@ -105,23 +416,18 @@ function onClick(evt) {
   console.log('randomIndex is ', randomIndex);
   question.innerHTML = '';
   if (parseInt(evt.target.id) === randomIndex) {
-    popupContent.innerHTML = 'Correct Answer!';
+    popupContent.innerHTML = 'You got it!!';
     popupToggle();
     score++;
     console.log('score is ', score);
   } else {
     popupToggle();
-    popupContent.innerHTML = 'Wrong Answer!';
+    popupContent.innerHTML = 'You suck!';
   }
   currentQuestion++;
   console.log('currentQ is ', currentQuestion);
+  setTimeout(next, 1000);
 }
-
-//compare if the clicked item is correct answer
-
-//save it in variable if it is correct answer
-
-//
 
 // display popup to go to the next question
 function popupToggle() {
@@ -129,29 +435,63 @@ function popupToggle() {
 }
 
 // next button generator
-const nextBtn = document.getElementById('nextBtn');
-nextBtn.addEventListener('click', next);
+// const nextBtn = document.getElementById('nextBtn');
+// nextBtn.addEventListener('click', next);
+
+let totalScore;
 
 //popup comes up and goes to the next question
 function next() {
-  const nextBtn = document.getElementById('nextBtn');
-  nextBtn.addEventListener('click', () => {
-    quizTitle.innerHTML = 'Ghibli Intro QUIZ';
-    imageCards.innerHTML = '';
-    popup.classList.remove('active');
-    if ((currentQuestion = 1)) {
+  // const nextBtn = document.getElementById('nextBtn');
+  // nextBtn.addEventListener('click', () => {
+
+  imageCards.innerHTML = '';
+  popup.classList.remove('active');
+  switch (currentQuestion) {
+    case 0:
+      document.body.style.backgroundColor = '#000';
+      quizTitle.innerHTML = 'Silhouette QUIZ';
+      clickTheMatchingImage.innerHTML = 'Click on a matching image';
+      clickImage.innerHTML = '';
+      randomIndex = random(silhouetteImg);
+      console.log(randomIndex);
+
+      question.innerHTML = silhouetteImg[randomIndex].question;
+      createCards(silhouetteImg);
+
+      break;
+
+    case 1:
       console.log('btn clicked');
 
+      quizTitle.innerHTML = 'Ghibli Intro QUIZ';
       question.innerHTML = 'Which Ghibli movie is this song from?';
-      const sound = document.getElementById('sound');
+      clickTheMatchingImage.innerHTML = 'Click on a matching image';
       randomIndex = random(ghibliSound);
       console.log('ghibli random is ', randomIndex);
       //sound.innerHTML = `<img src = "./images/playBtn.png" onclick="playAudio('./${ghibliSound[randomIndex].src}')">`;
       sound.innerHTML = `<audio controls><source src="${ghibliSound[randomIndex].src}" type="audio/wav"></audio>`;
       createCards(ghibliSound);
       addEventListener();
-    }
-  });
+      break;
+
+    case 2:
+      quizTitle.innerHTML = '';
+      clickTheMatchingImage.innerHTML = '';
+      sound.parentNode.removeChild(sound);
+      createImages();
+      dragAndDrop();
+      break;
+
+    default:
+      quizTitle.innerHTML = `You've got ${score}/${currentQuestion} correct!`;
+      totalScore = score;
+      quizTitle.style.marginTop = '300px';
+      clickImage.innerHTML = '';
+      sound.innerHTML = '';
+      addScore();
+  }
+  // });
 }
 
 // function playAudio(url) {
