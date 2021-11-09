@@ -343,6 +343,7 @@ function dragAndDrop() {
         .getElementById('imageBox' + boxNr)
         .getBoundingClientRect();
       mainImageRect = mainBox.getBoundingClientRect();
+      console.log('mainImageRect is ', mainImageRect);
       console.log(mainBox.offsetHeight);
       if (
         imageRect.top <= mainImageRect.top + mainBox.offsetHeight &&
@@ -384,6 +385,8 @@ function dragAndDrop() {
 }
 
 function startGame() {
+  document.body.style.background =
+    'linear-gradient(to right, rgba(14, 236, 151, 0.65), rgba(128, 13, 223, 0.65))';
   question.innerHTML = `<button id="startBtn">Begin the Game</button>`;
   question.addEventListener('click', next);
 }
@@ -408,6 +411,12 @@ function addEventListener() {
   let imgBtn = document.querySelectorAll('.imgBtn');
   console.log(imgBtn);
   imgBtn.forEach((e) => e.addEventListener('click', onClick));
+}
+
+function addAnimalEventListener() {
+  let animalImage = document.querySelectorAll('.animalImage');
+  console.log(animalImage);
+  animalImage.forEach((e) => e.addEventListener('click', onClick));
 }
 //add EventListener for clicking a card
 function onClick(evt) {
@@ -449,7 +458,7 @@ function next() {
   popup.classList.remove('active');
   switch (currentQuestion) {
     case 0:
-      document.body.style.backgroundColor = '#000';
+      //document.body.style.backgroundColor = '#000';
       quizTitle.innerHTML = 'Silhouette QUIZ';
       clickTheMatchingImage.innerHTML = 'Click on a matching image';
       clickImage.innerHTML = '';
@@ -478,7 +487,83 @@ function next() {
     case 2:
       quizTitle.innerHTML = '';
       clickTheMatchingImage.innerHTML = '';
-      sound.parentNode.removeChild(sound);
+      sound.children ? sound.parentNode.removeChild(sound) : null;
+      console.log('soundChildrend is ', sound.children);
+      randomIndex = random(animalList);
+      question.innerHTML = `Find the ${animalList[randomIndex].name}`;
+      let xPos = 0;
+      let yPos = 0;
+
+      for (let i = 0; i < animalList.length; i++) {
+        if (xPos == 4) (xPos = 0), yPos++;
+        let animalDiv = $('<div/>').attr('class', 'animalImage');
+        animalDiv.attr('id', `${i}`);
+        //animalDiv.attr('onclick', `onClick()`);
+        animalDiv
+          .css({
+            left: 25 * xPos + '%',
+            top: 25 * yPos + '%',
+            background: `url(/images/${animalList[i].src})`,
+            'background-size': 'contain',
+            'background-position': 'center',
+            'background-repeat': 'no-repeat',
+          })
+          .appendTo('#containerBox')
+          .html();
+        xPos++;
+      }
+
+      addAnimalEventListener();
+      break;
+    case 3:
+      console.log('current is # ', currentQuestion);
+      document.querySelectorAll('.animalImage').forEach((e) => e.remove());
+      quizTitle.innerHTML = '';
+      clickTheMatchingImage.innerHTML = '';
+      let container = document.getElementsById('container');
+      container.innerHTML = `<div>hej</div>`;
+
+      //   document.getElementsById('container').innerHTML = ` <input
+      //   type="button"
+      //   value="button1"
+      //   id="nextglasses"
+      //   onclick="nextGlasses()"
+      // />
+      // <input
+      //   type="button"
+      //   value="button2"
+      //   id="nextshoes"
+      //   onclick="nextShoes()"
+      // />
+      // <input
+      //   type="button"
+      //   value="button3"
+      //   id="nextextra"
+      //   onclick="nextExtra()"
+      // />
+      // <button id="submit" onclick="checkAnswer()">Submit Answer</button>
+      // <div id="results"></div>
+
+      // <div id="background">
+      //   <div id="glasses" />
+      //   <div id="character" />
+      //   <div id="glasses-variants">
+      //     <div id="glasses1"></div>
+      //     <div id="glasses2"></div>
+      //     <div id="glasses3"></div>
+      //   </div>
+      //   <div id="shoes" />
+      //   <div id="extra" />
+      // </div>`;
+
+      displayGlasses();
+      nextGlasses();
+      break;
+
+    case 4:
+      //sound.children ? sound.parentNode.removeChild(sound) : null;
+      console.log('soundChildrend is ', sound.children);
+      //sound.parentNode.removeChild(sound);
       createImages();
       dragAndDrop();
       break;
@@ -494,7 +579,77 @@ function next() {
   // });
 }
 
-// function playAudio(url) {
-//   new Audio(url).play();
-//   console.log('clicked play');
-// }
+const animalList = [
+  { name: 'Cat', src: 'q5imgs/cat.jpeg' },
+  { name: 'Dog', src: 'q5imgs/dog.jpeg' },
+  { name: 'Owl', src: 'q5imgs/great-horned-owl.jpeg' },
+  { name: 'Parrot', src: 'q5imgs/parrot.jpeg' },
+  { name: 'Popit', src: 'q5imgs/popit.jpeg' },
+  { name: 'Shark', src: 'q5imgs/shark.jpg' },
+  { name: 'Sloth', src: 'q5imgs/sloth.jpeg' },
+  { name: 'Utter', src: 'q5imgs/utter.jpeg' },
+  { name: 'Unicorn', src: 'q5imgs/unicorn.png' },
+  { name: 'Human', src: 'q5imgs/human.png' },
+  { name: 'Ducks', src: 'q5imgs/ducks.jpg' },
+  { name: 'Rabbit', src: 'q5imgs/rabbit.jpg' },
+  { name: 'Hamster', src: 'q5imgs/hamster.jpg' },
+  { name: 'Gorilla', src: 'q5imgs/gorilla.jpg' },
+  { name: 'Lemur', src: 'q5imgs/lemur.jpg' },
+  { name: 'Giraffe', src: 'q5imgs/giraffe.jpg' },
+];
+
+let currentActive = 0;
+const glassPos = [0, 100, 200, 300];
+const resultBox = document.getElementById('results');
+const makeGlasses = [
+  {
+    imgURL: ['images/0glass1.png', 'images/0glass2.png', 'images/0glass3.png'],
+    charaURL: 'images/0frog.png',
+    answer: 'glasses2',
+  },
+  {
+    imgURL: ['placeholder'],
+  },
+];
+
+function displayGlasses() {
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById('glasses' + i).style.background = `url(${
+      makeGlasses[0].imgURL[i - 1]
+    })`;
+  }
+
+  document.getElementById(
+    'character'
+  ).style.background = `url(${makeGlasses[0].charaURL})`;
+}
+
+function nextGlasses() {
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById('glasses' + i).style.visibility = 'hidden';
+  }
+  if (currentActive != 0) {
+    document.getElementById('glasses' + currentActive).style.visibility =
+      'visible';
+  }
+
+  console.log(glassPos[currentActive]);
+  document.getElementById('glasses-variants').style.left =
+    -glassPos[currentActive] + '%';
+  console.log(currentActive, glassPos.length);
+  if (currentActive == glassPos.length - 1) {
+    currentActive = 0;
+  } else {
+    currentActive++;
+  }
+}
+
+function checkAnswer() {
+  console.log("current'active", currentActive);
+
+  if (currentActive === 3) {
+    resultBox.innerHTML = 'Correct Answer';
+  } else {
+    resultBox.innerHTML = 'Wrong Answer';
+  }
+}
